@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Contact Form - Multiple Recipients</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 450px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .field {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      small {
+        color: #666;
+        font-size: 0.85rem;
+      }
+      button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 1rem;
+      }
+      button:hover {
+        background: #218838;
+      }
+      #status {
+        margin-top: 15px;
+        text-align: center;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Email Sender 3000 (Alpha Release)</h2>
+    <h4>By Catayas, Eric Jay</h4>
+    <form id="webhookForm">
+      <div class="field">
+        <label for="emails">Recipient Emails:</label>
+        <input
+          type="text"
+          id="emails"
+          name="emails"
+          placeholder="user1@example.com, user2@example.com"
+          required
+        />
+        <small>Separate multiple emails with commas.</small>
+      </div>
+
+      <div class="field">
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" name="subject" required />
+      </div>
+
+      <div class="field">
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="5" required></textarea>
+      </div>
+
+      <button type="submit" id="submitBtn">Send Emails</button>
+    </form>
+    <div id="status"></div>
+
+    <script>
+      document
+        .getElementById("webhookForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const statusDiv = document.getElementById("status");
+          const submitBtn = document.getElementById("submitBtn");
+
+          // 1. Process the emails into an array
+          const emailInput = document.getElementById("emails").value;
+          // Split by comma, then trim whitespace from each email
+          const emailArray = emailInput
+            .split(",")
+            .map((email) => email.trim())
+            .filter((email) => email !== "");
+
+          const payload = {
+            emails: emailArray,
+            subject: document.getElementById("subject").value,
+            message: document.getElementById("message").value,
+          };
+
+          // UI Feedback
+          submitBtn.disabled = true;
+          statusDiv.textContent = "Sending...";
+
+          try {
+            const response = await fetch(
+              "https://ericjay.app.n8n.cloud/webhook-test/email",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              },
+            );
+
+            if (response.ok) {
+              statusDiv.style.color = "green";
+              statusDiv.textContent = "Success! Array sent.";
+            } else {
+              statusDiv.style.color = "red";
+              statusDiv.textContent = "Error: " + response.statusText;
+            }
+          } catch (error) {
+            statusDiv.style.color = "red";
+            statusDiv.textContent = "Network error: " + error.message;
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+    </script>
+  </body>
+</html>
